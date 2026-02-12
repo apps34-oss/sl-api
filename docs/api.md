@@ -159,9 +159,15 @@ Input:
 
 - email
 - password
+- (optional) `first_alias`: boolean. Set to `false` to skip creating the first alias.
+- (optional) `lifetime`: boolean. Set to `true` to create user with `lifetime=true`.
+- (optional) `activated`: boolean. Set to `true` to create user with `activated=true`.
 
-Output: 200 means user is going to receive an email that contains an *activation code*. User needs to enter this code to
-confirm their account -> next endpoint.
+Output:
+
+- 200: by default user is going to receive an email that contains an *activation code*. User needs to enter this code to
+  confirm their account -> next endpoint.
+- 200: if `activated=true`, account is created as activated and no activation email is sent.
 
 #### POST /api/auth/activate
 
@@ -754,7 +760,6 @@ List of mailboxes. Each mailbox has id, email, default, creation_timestamp field
 }
 ```
 
-## Mailbox endpoints
 #### POST /api/mailboxes
 
 Create a new mailbox
@@ -763,11 +768,12 @@ Input:
 
 - `Authentication` header that contains the api key
 - email: the new mailbox address
+- (optional) `verified`: boolean. If `true`, mailbox is created as verified.
 
 Output:
 
-- 201 along with the following response if new mailbox is created successfully. User is going to receive a verification
-  email.
+- 201 along with the following response if new mailbox is created successfully.
+  If `verified` is not set (or `false`), user is going to receive a verification email.
     - id: integer
     - email: the mailbox email address
     - verified: boolean.
@@ -787,6 +793,7 @@ Input:
 Output:
 
 - 200 if deleted successfully
+- No mailbox deletion email is sent when deleting mailbox via this API endpoint.
 - 400 if error
 
 #### PUT /api/mailboxes/:mailbox_id

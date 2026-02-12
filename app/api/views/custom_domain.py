@@ -109,7 +109,9 @@ def update_custom_domain(custom_domain_id):
             changed = True
         else:
             LOG.info(
-                f"Prevented from updating mailboxes [custom_domain_id={custom_domain.id}]: {result.reason.value}"
+                "Prevented from updating mailboxes [custom_domain_id=%s]: %s",
+                custom_domain.id,
+                result.reason.value,
             )
             return jsonify(error="Forbidden"), 400
 

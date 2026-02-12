@@ -169,7 +169,9 @@ def test_update_custom_domain_validation_forbidden(flask_client):
     assert r.status_code == 403
 
 
-def test_update_custom_domain_validation_admin_can_update_other_user_domain(flask_client):
+def test_update_custom_domain_validation_admin_can_update_other_user_domain(
+    flask_client,
+):
     admin_user = login(flask_client)
     admin_user.is_admin = True
     Session.commit()
