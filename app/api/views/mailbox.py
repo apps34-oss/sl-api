@@ -96,7 +96,12 @@ def delete_mailbox(mailbox_id):
         transfer_mailbox_id = None
 
     try:
-        mailbox_utils.delete_mailbox(user, mailbox_id, transfer_mailbox_id)
+        mailbox_utils.delete_mailbox(
+            user,
+            mailbox_id,
+            transfer_mailbox_id,
+            send_mail=False,
+        )
     except mailbox_utils.MailboxError as e:
         return jsonify(error=e.msg), 400
 

@@ -1,7 +1,8 @@
 from flask import url_for
 
+from app.constants import JobType
 from app.db import Session
-from app.models import Mailbox
+from app.models import Job, Mailbox
 from tests.utils import login
 
 
@@ -94,6 +95,11 @@ def test_delete_mailbox(flask_client):
     )
 
     assert r.status_code == 200
+    job = Session.query(Job).order_by(Job.id.desc()).first()
+    assert job is not None
+    assert job.name == JobType.DELETE_MAILBOX.value
+    assert job.payload["mailbox_id"] == mb.id
+    assert job.payload["send_mail"] is False
 
 
 def test_delete_default_mailbox(flask_client):
