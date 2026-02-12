@@ -31,18 +31,23 @@ def create_mailbox():
     Create a new mailbox. User needs to verify the mailbox via an activation email.
     Input:
         email: in body
+        verified (optional): if true, mailbox is created as verified
     Output:
         the new mailbox dict
     """
     user = g.user
-    email = request.get_json().get("email")
+    data = request.get_json() or {}
+    email = data.get("email")
     if not email:
         return jsonify(error="Invalid email"), 400
 
     mailbox_email = sanitize_email(email)
+    verified = data.get("verified") is True
 
     try:
-        new_mailbox = mailbox_utils.create_mailbox(user, mailbox_email).mailbox
+        new_mailbox = mailbox_utils.create_mailbox(
+            user, mailbox_email, verified=verified
+        ).mailbox
     except mailbox_utils.MailboxError as e:
         return jsonify(error=e.msg), 400
 

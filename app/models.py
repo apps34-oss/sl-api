@@ -681,7 +681,15 @@ class User(Base, ModelMixin, UserMixin, PasswordOracle):
             return str(self.id)
 
     @classmethod
-    def create(cls, email, name="", password=None, from_partner=False, **kwargs):
+    def create(
+        cls,
+        email,
+        name="",
+        password=None,
+        from_partner=False,
+        first_alias=True,
+        **kwargs,
+    ):
         email = sanitize_email(email)
         user: User = super(User, cls).create(email=email, name=name[:100], **kwargs)
 
@@ -721,18 +729,19 @@ class User(Base, ModelMixin, UserMixin, PasswordOracle):
             Session.flush()
             return user
 
-        # create a first alias mail to show user how to use when they login
-        alias = Alias.create_new(
-            user,
-            prefix="simplelogin-newsletter",
-            mailbox_id=mb.id,
-            note="This is your first alias. It's used to receive SimpleLogin communications "
-            "like new features announcements, newsletters.",
-        )
-        Session.flush()
+        if first_alias:
+            # create a first alias mail to show user how to use when they login
+            alias = Alias.create_new(
+                user,
+                prefix="simplelogin-newsletter",
+                mailbox_id=mb.id,
+                note="This is your first alias. It's used to receive SimpleLogin communications "
+                "like new features announcements, newsletters.",
+            )
+            Session.flush()
 
-        user.newsletter_alias_id = alias.id
-        Session.flush()
+            user.newsletter_alias_id = alias.id
+            Session.flush()
 
         if config.DISABLE_ONBOARDING:
             LOG.d("Disable onboarding emails")

@@ -4,7 +4,7 @@ from flask import url_for
 
 from app import config
 from app.db import Session
-from app.models import User, AccountActivation
+from app.models import User, AccountActivation, Alias
 from tests.utils import random_email
 
 PASSWORD_1 = "Aurélie"
@@ -104,6 +104,30 @@ def test_auth_register_success(flask_client):
     assert act_code
     assert len(act_code.code) == 6
     assert act_code.tries == 3
+
+
+def test_auth_register_with_optional_flags(flask_client):
+    email = random_email()
+
+    r = flask_client.post(
+        url_for("api.auth_register"),
+        json={
+            "email": email,
+            "password": "password",
+            "first_alias": False,
+            "lifetime": True,
+            "activated": True,
+        },
+    )
+
+    assert r.status_code == 200
+    user = User.get_by(email=email)
+    assert user
+    assert user.lifetime is True
+    assert user.activated is True
+    assert user.newsletter_alias_id is None
+    assert Alias.filter_by(user_id=user.id).count() == 0
+    assert AccountActivation.get_by(user_id=user.id) is None
 
 
 def test_auth_register_too_short_password(flask_client):

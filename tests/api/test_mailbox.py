@@ -22,6 +22,19 @@ def test_create_mailbox_valid(flask_client):
     assert r.json["nb_alias"] == 0
 
 
+def test_create_mailbox_verified_flag(flask_client):
+    login(flask_client)
+
+    r = flask_client.post(
+        "/api/mailboxes",
+        json={"email": "mailbox-verified@gmail.com", "verified": True},
+    )
+
+    assert r.status_code == 201
+    assert r.json["email"] == "mailbox-verified@gmail.com"
+    assert r.json["verified"] is True
+
+
 def test_create_mailbox_invalid_email(flask_client):
     login(flask_client)
     r = flask_client.post(

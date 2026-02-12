@@ -93,8 +93,12 @@ def auth_register():
     Input:
         email
         password
+        first_alias (optional): set to false to skip creating the first alias
+        lifetime (optional): set to true to create a lifetime user
+        activated (optional): set to true to create an activated user
     Output:
         200: user needs to confirm their account
+        200 (if activated=true): user account is already activated
 
     """
     data = request.get_json()
@@ -128,9 +132,27 @@ def auth_register():
         RegisterEvent(RegisterEvent.ActionType.failed, RegisterEvent.Source.api).send()
         return jsonify(error="password too long"), 400
 
+    create_user_kwargs = {}
+    if data.get("first_alias") is False:
+        create_user_kwargs["first_alias"] = False
+    if data.get("lifetime") is True:
+        create_user_kwargs["lifetime"] = True
+    if data.get("activated") is True:
+        create_user_kwargs["activated"] = True
+
     LOG.d("create user %s", email)
-    user = User.create(email=email, name=dirty_email, password=password)
+    user = User.create(
+        email=email,
+        name=dirty_email,
+        password=password,
+        **create_user_kwargs,
+    )
     Session.flush()
+
+    if user.activated:
+        Session.commit()
+        RegisterEvent(RegisterEvent.ActionType.success, RegisterEvent.Source.api).send()
+        return jsonify(msg="User account is already activated"), 200
 
     # create activation code
     code = "".join([str(secrets.choice(string.digits)) for _ in range(6)])
