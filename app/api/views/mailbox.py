@@ -42,7 +42,9 @@ def create_mailbox():
         return jsonify(error="Invalid email"), 400
 
     mailbox_email = sanitize_email(email)
-    verified = data.get("verified") is True
+    verified = False
+    if "verified" in data:
+        verified = data["verified"] is True
 
     try:
         new_mailbox = mailbox_utils.create_mailbox(

@@ -137,7 +137,8 @@ def auth_register():
         create_user_kwargs["first_alias"] = False
     if data.get("lifetime") is True:
         create_user_kwargs["lifetime"] = True
-    if data.get("activated") is True:
+    activated_requested = data.get("activated") is True
+    if activated_requested:
         create_user_kwargs["activated"] = True
 
     LOG.d("create user %s", email)
@@ -149,7 +150,7 @@ def auth_register():
     )
     Session.flush()
 
-    if user.activated:
+    if activated_requested:
         Session.commit()
         RegisterEvent(RegisterEvent.ActionType.success, RegisterEvent.Source.api).send()
         return jsonify(msg="User account is already activated"), 200
