@@ -119,3 +119,56 @@ def update_custom_domain(custom_domain_id):
     # refresh
     custom_domain = CustomDomain.get(custom_domain_id)
     return jsonify(custom_domain=custom_domain_to_dict(custom_domain)), 200
+
+
+@api_bp.route("/custom_domains/<int:custom_domain_id>/validation", methods=["PATCH"])
+@require_api_auth
+@limiter.limit("100/hour")
+def update_custom_domain_validation(custom_domain_id):
+    """
+    Manually update custom domain DNS validation flags.
+    Input:
+        custom_domain_id: in url
+    In body:
+        ownership_verified (optional): boolean
+        verified (optional): boolean
+        spf_verified (optional): boolean
+        dkim_verified (optional): boolean
+        dmarc_verified (optional): boolean
+    Output:
+        200
+    """
+    data = request.get_json()
+    if not data:
+        return jsonify(error="request body cannot be empty"), 400
+
+    user = g.user
+    custom_domain: CustomDomain = CustomDomain.get(custom_domain_id)
+    if not custom_domain:
+        return jsonify(error="Forbidden"), 403
+
+    # Admin can update any domain. Regular users can only update their domains.
+    if not user.is_admin and custom_domain.user_id != user.id:
+        return jsonify(error="Forbidden"), 403
+
+    changed = False
+    for field_name in (
+        "ownership_verified",
+        "verified",
+        "spf_verified",
+        "dkim_verified",
+        "dmarc_verified",
+    ):
+        if field_name in data:
+            field_value = data[field_name]
+            if not isinstance(field_value, bool):
+                return jsonify(error=f"{field_name} must be a boolean"), 400
+            setattr(custom_domain, field_name, field_value)
+            changed = True
+
+    if not changed:
+        return jsonify(error="No validation fields to update"), 400
+
+    Session.commit()
+    custom_domain = CustomDomain.get(custom_domain_id)
+    return jsonify(custom_domain=custom_domain_to_dict(custom_domain)), 200

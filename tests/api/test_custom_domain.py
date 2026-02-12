@@ -1,6 +1,7 @@
 from app.alias_delete import delete_alias
-from app.models import CustomDomain, Alias, Mailbox
-from tests.utils import login
+from app.db import Session
+from app.models import Alias, CustomDomain, Mailbox
+from tests.utils import create_new_user, login
 
 
 def test_get_custom_domains(flask_client):
@@ -114,3 +115,78 @@ def test_get_custom_domain_trash(flask_client):
     for deleted_alias in r.json["aliases"]:
         assert deleted_alias["alias"]
         assert deleted_alias["deletion_timestamp"] > 0
+
+
+def test_update_custom_domain_validation(flask_client):
+    user = login(flask_client)
+
+    cd = CustomDomain.create(
+        user_id=user.id,
+        domain="validation-test.org",
+        ownership_verified=False,
+        verified=False,
+        spf_verified=False,
+        dkim_verified=False,
+        dmarc_verified=False,
+        commit=True,
+    )
+
+    r = flask_client.patch(
+        f"/api/custom_domains/{cd.id}/validation",
+        json={
+            "ownership_verified": True,
+            "verified": True,
+            "spf_verified": True,
+            "dkim_verified": True,
+            "dmarc_verified": True,
+        },
+    )
+
+    assert r.status_code == 200
+    cd = CustomDomain.get(cd.id)
+    assert cd.ownership_verified is True
+    assert cd.verified is True
+    assert cd.spf_verified is True
+    assert cd.dkim_verified is True
+    assert cd.dmarc_verified is True
+
+
+def test_update_custom_domain_validation_forbidden(flask_client):
+    login(flask_client)
+    other_user = create_new_user()
+
+    cd = CustomDomain.create(
+        user_id=other_user.id,
+        domain="other-domain.org",
+        commit=True,
+    )
+
+    r = flask_client.patch(
+        f"/api/custom_domains/{cd.id}/validation",
+        json={"verified": True},
+    )
+
+    assert r.status_code == 403
+
+
+def test_update_custom_domain_validation_admin_can_update_other_user_domain(flask_client):
+    admin_user = login(flask_client)
+    admin_user.is_admin = True
+    Session.commit()
+
+    other_user = create_new_user()
+    cd = CustomDomain.create(
+        user_id=other_user.id,
+        domain="admin-can-update.org",
+        verified=False,
+        commit=True,
+    )
+
+    r = flask_client.patch(
+        f"/api/custom_domains/{cd.id}/validation",
+        json={"verified": True},
+    )
+
+    assert r.status_code == 200
+    cd = CustomDomain.get(cd.id)
+    assert cd.verified is True

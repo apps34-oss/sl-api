@@ -39,6 +39,7 @@
 [Custom domain endpoints](#custom-domain-endpoints)
 - [GET /api/custom_domains](#get-apicustom_domains): Get custom domains.
 - [PATCH /api/custom_domains/:custom_domain_id](#patch-apicustom_domainscustom_domain_id): Update custom domain's information.
+- [PATCH /api/custom_domains/:custom_domain_id/validation](#patch-apicustom_domainscustom_domain_idvalidation): Manually update custom domain validation flags.
 - [GET /api/custom_domains/:custom_domain_id/trash](#get-apicustom_domainscustom_domain_idtrash): Get deleted aliases of a custom domain.
 
 [Contact endpoints](#contact-endpoints)
@@ -869,6 +870,24 @@ Input:
 - (optional) `random_prefix_generation`: boolean, in request body
 - (optional) `name`: text, in request body
 - (optional) `mailbox_ids`: array of mailbox id, in request body
+
+Output:
+If success, return 200 along with updated custom domain
+
+#### PATCH /api/custom_domains/:custom_domain_id/validation
+
+Manually update custom domain validation flags (without DNS checks).
+Regular users can update only their own domains. Admin users can update any domain.
+
+Input:
+
+- `Authentication` header that contains the api key
+- `custom_domain_id` in url
+- (optional) `ownership_verified`: boolean, in request body
+- (optional) `verified`: boolean, in request body
+- (optional) `spf_verified`: boolean, in request body
+- (optional) `dkim_verified`: boolean, in request body
+- (optional) `dmarc_verified`: boolean, in request body
 
 Output:
 If success, return 200 along with updated custom domain
