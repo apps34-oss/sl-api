@@ -1,3 +1,18 @@
+/* Readability-focused font stack for UI text */
+body,
+button,
+input,
+select,
+textarea {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+
+/* Theme sets these to Source Sans Pro explicitly */
+.tooltip,
+.popover {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+
 .profile-picture {
     /* make a square container */
     width: 150px;
