@@ -7,9 +7,7 @@ from tests.utils import create_new_user, login
 def test_create_custom_domain(flask_client):
     user = login(flask_client)
 
-    r = flask_client.post(
-        "/api/custom_domains", json={"domain": "HTTP://Api-Test.org"}
-    )
+    r = flask_client.post("/api/custom_domains", json={"domain": "HTTP://Api-Test.org"})
 
     assert r.status_code == 201
     cd_json = r.json["custom_domain"]
