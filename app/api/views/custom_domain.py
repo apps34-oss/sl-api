@@ -2,7 +2,7 @@ from flask import g, request
 from flask import jsonify
 
 from app.api.base import api_bp, require_api_auth
-from app.custom_domain_utils import set_custom_domain_mailboxes
+from app.custom_domain_utils import create_custom_domain, set_custom_domain_mailboxes
 from app.db import Session
 from app.extensions import limiter
 from app.log import LOG
@@ -35,6 +35,34 @@ def get_custom_domains():
     ).all()
 
     return jsonify(custom_domains=[custom_domain_to_dict(cd) for cd in custom_domains])
+
+
+@api_bp.route("/custom_domains", methods=["POST"])
+@require_api_auth
+@limiter.limit("20/hour")
+def create_custom_domain_api():
+    """
+    Create a custom domain.
+    In body:
+        domain: custom domain
+    Output:
+        201 with created custom domain
+    """
+    data = request.get_json()
+    if not data:
+        return jsonify(error="request body cannot be empty"), 400
+    if not isinstance(data, dict):
+        return jsonify(error="request body does not follow the required format"), 400
+
+    domain = data.get("domain")
+    if not isinstance(domain, str) or not domain.strip():
+        return jsonify(error="invalid value for domain"), 400
+
+    result = create_custom_domain(g.user, domain)
+    if not result.success or not result.instance:
+        return jsonify(error=result.message or "Cannot create custom domain"), 400
+
+    return jsonify(custom_domain=custom_domain_to_dict(result.instance)), 201
 
 
 @api_bp.route("/custom_domains/<int:custom_domain_id>/trash", methods=["GET"])

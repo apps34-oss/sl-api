@@ -4,6 +4,42 @@ from app.models import Alias, CustomDomain, Mailbox
 from tests.utils import create_new_user, login
 
 
+def test_create_custom_domain(flask_client):
+    user = login(flask_client)
+
+    r = flask_client.post(
+        "/api/custom_domains", json={"domain": "HTTP://Api-Test.org"}
+    )
+
+    assert r.status_code == 201
+    cd_json = r.json["custom_domain"]
+    assert cd_json["domain_name"] == "api-test.org"
+    assert cd_json["id"]
+
+    cd = CustomDomain.get(cd_json["id"])
+    assert cd is not None
+    assert cd.user_id == user.id
+    assert cd.domain == "api-test.org"
+
+
+def test_create_custom_domain_empty_body(flask_client):
+    login(flask_client)
+
+    r = flask_client.post("/api/custom_domains", json={})
+
+    assert r.status_code == 400
+    assert r.json["error"] == "request body cannot be empty"
+
+
+def test_create_custom_domain_invalid_domain(flask_client):
+    login(flask_client)
+
+    r = flask_client.post("/api/custom_domains", json={"domain": "invalid@domain"})
+
+    assert r.status_code == 400
+    assert r.json["error"] == "This is not a valid domain"
+
+
 def test_get_custom_domains(flask_client):
     user = login(flask_client)
 

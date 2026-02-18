@@ -37,6 +37,7 @@
 - [PUT /api/mailboxes/:mailbox_id](#put-apimailboxesmailbox_id): Update a mailbox.
 
 [Custom domain endpoints](#custom-domain-endpoints)
+- [POST /api/custom_domains](#post-apicustom_domains): Create a custom domain.
 - [GET /api/custom_domains](#get-apicustom_domains): Get custom domains.
 - [PATCH /api/custom_domains/:custom_domain_id](#patch-apicustom_domainscustom_domain_id): Update custom domain's information.
 - [PATCH /api/custom_domains/:custom_domain_id/validation](#patch-apicustom_domainscustom_domain_idvalidation): Manually update custom domain validation flags.
@@ -814,6 +815,41 @@ Output:
 - 400 if error
 
 ### Custom domain endpoints
+
+#### POST /api/custom_domains
+
+Create a custom domain.
+
+Input:
+
+- `Authentication` header that contains the api key
+- `domain`: custom domain name, in request body
+
+Output:
+If success, return `201` along with created custom domain.
+If error, return `400` with `error` field.
+
+```json
+{
+  "custom_domain": {
+    "catch_all": false,
+    "creation_date": "2021-03-10 21:36:08+00:00",
+    "creation_timestamp": 1615412168,
+    "domain_name": "example.org",
+    "id": 1,
+    "is_verified": false,
+    "mailboxes": [
+      {
+        "email": "a@b.c",
+        "id": 1
+      }
+    ],
+    "name": null,
+    "nb_alias": 0,
+    "random_prefix_generation": false
+  }
+}
+```
 
 #### GET /api/custom_domains
 
